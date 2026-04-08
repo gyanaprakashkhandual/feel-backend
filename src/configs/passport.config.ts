@@ -18,7 +18,7 @@ async function handleOAuthProfile(
   done: VerifyCallback
 ) {
   try {
-    let user: IUserDocument | null = await User.findByOAuth(provider, providerId);
+    let user: IUserDocument | null = await (User as any).findByOAuth(provider, providerId);
 
     if (user) {
       const profileIndex = user.oauthProfiles.findIndex(

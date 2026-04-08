@@ -2,13 +2,13 @@ import { model, Document, Model } from "mongoose";
 import { IUser } from "../types/user.types";
 import { userSchema } from "../schemas/user.schema";
 
-export interface IUserDocument extends Omit<IUser, "_id">, Document { }
+export interface IUserDocument extends Omit<IUser, "_id">, Document {}
 
 export interface IUserModel extends Model<IUserDocument> {
     findByOAuth(provider: string, providerId: string): Promise<IUserDocument | null>;
 }
 
-userSchema.statics.findByOAuth = function (
+(userSchema.statics as any).findByOAuth = function (
     provider: string,
     providerId: string
 ): Promise<IUserDocument | null> {
@@ -19,6 +19,6 @@ userSchema.statics.findByOAuth = function (
     });
 };
 
-const User = model<IUserDocument, IUserModel>("User", userSchema);
+const User = model<IUserDocument, IUserModel>("User", userSchema as any);
 
 export default User;

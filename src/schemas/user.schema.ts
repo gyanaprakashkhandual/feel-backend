@@ -51,3 +51,11 @@ export const userSchema = new Schema<IUser>(
 
 userSchema.index({ email: 1 });
 userSchema.index({ "oauthProfiles.provider": 1, "oauthProfiles.providerId": 1 });
+
+(userSchema.statics as any).findByOAuth = function (provider: string, providerId: string) {
+    return this.findOne({
+        oauthProfiles: {
+            $elemMatch: { provider, providerId },
+        },
+    });
+};

@@ -30,7 +30,7 @@ router.post("/refresh", refreshAccessToken);
 
 router.post("/logout", logout);
 
-router.get("/me", authenticate as any, getMe);
+// router.get("/me", authenticate as any, getMe);
 
 router.get("/failure", (_req, res) => {
     res.status(401).json({ success: false, message: "OAuth authentication failed" });
