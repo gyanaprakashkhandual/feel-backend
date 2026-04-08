@@ -41,8 +41,8 @@ export const userSchema = new Schema<IUser>(
         timestamps: true,
         toJSON: {
             transform: (_doc, ret) => {
-                delete ret.oauthProfiles;
-                delete ret.__v;
+                delete (ret as any).oauthProfiles;
+                delete (ret as any).__v;
                 return ret;
             },
         },
