@@ -87,8 +87,8 @@ export const logout = (_req: Request, res: Response): void => {
     res.status(200).json({ success: true, message: "Logged out" });
 };
 
-export const getMe = (req: AuthRequest, res: Response): void => {
-    const user = req.user;
+export const getMe = (req: Request, res: Response): void => {
+    const user = (req as AuthRequest).user;
 
     if (!user) {
         res.status(401).json({ success: false, message: "Unauthorized" });

@@ -12,7 +12,7 @@ export interface AuthRequest extends Request {
 }
 
 export const authenticate = async (
-    req: AuthRequest,
+    req: Request,
     res: Response,
     next: NextFunction
 ): Promise<void> => {
@@ -35,7 +35,7 @@ export const authenticate = async (
             return;
         }
 
-        req.user = { userId: decoded.userId, email: decoded.email, role: decoded.role };
+        (req as AuthRequest).user = { userId: decoded.userId, email: decoded.email, role: decoded.role };
         next();
     } catch {
         res.status(401).json({ success: false, message: "Invalid or expired token" });
@@ -43,8 +43,9 @@ export const authenticate = async (
 };
 
 export const authorize = (...roles: UserRole[]) => {
-    return (req: AuthRequest, res: Response, next: NextFunction): void => {
-        if (!req.user || !roles.includes(req.user.role)) {
+    return (req: Request, res: Response, next: NextFunction): void => {
+        const authReq = req as AuthRequest;
+        if (!authReq.user || !roles.includes(authReq.user.role)) {
             res.status(403).json({ success: false, message: "Forbidden" });
             return;
         }
