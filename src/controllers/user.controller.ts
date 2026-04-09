@@ -37,6 +37,13 @@ export const oauthCallback = (req: Request, res: Response): void => {
 
         const { accessToken, refreshToken } = buildAuthResponse(user);
 
+        // Check if this is first login
+        const isFirstLogin = !user.lastLoginAt;
+
+        // Update last login timestamp
+        user.lastLoginAt = new Date();
+        user.save(); // Don't await to avoid blocking response
+
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -45,7 +52,7 @@ export const oauthCallback = (req: Request, res: Response): void => {
         });
 
         res.redirect(
-            `${process.env.CLIENT_URL}/auth/callback?accessToken=${accessToken}`
+            `${process.env.CLIENT_URL}/auth/callback?accessToken=${accessToken}&isFirstLogin=${isFirstLogin}`
         );
     } catch {
         res.redirect(`${process.env.CLIENT_URL}/auth/error?message=Server error`);
