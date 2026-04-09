@@ -19,6 +19,7 @@ async function handleOAuthProfile(
 ) {
     try {
         let user: IUserDocument | null = await (User as any).findByOAuth(provider, providerId);
+        let isNewUser = false;
 
         if (user) {
             const profileIndex = user.oauthProfiles.findIndex(
@@ -32,7 +33,7 @@ async function handleOAuthProfile(
 
             user.lastLoginAt = new Date();
             await user.save();
-            return done(null, user);
+            return done(null, { ...user.toObject(), isNewUser: false });
         }
 
         user = await User.findOne({ email });
@@ -41,7 +42,7 @@ async function handleOAuthProfile(
             user.oauthProfiles.push({ provider, providerId, accessToken, refreshToken });
             user.lastLoginAt = new Date();
             await user.save();
-            return done(null, user);
+            return done(null, { ...user.toObject(), isNewUser: false });
         }
 
         const newUser = await User.create({
@@ -51,8 +52,9 @@ async function handleOAuthProfile(
             oauthProfiles: [{ provider, providerId, accessToken, refreshToken }],
             lastLoginAt: new Date(),
         });
+        isNewUser = true;
 
-        return done(null, newUser);
+        return done(null, { ...newUser.toObject(), isNewUser });
     } catch (error) {
         return done(error as Error);
     }
