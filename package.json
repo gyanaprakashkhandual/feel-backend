@@ -25,6 +25,7 @@
     "passport-google-oauth20": "^2.0.0",
     "passport-spotify": "^2.0.0",
     "redis": "^5.11.0",
+    "slugify": "^1.6.9",
     "socket.io": "^4.8.3",
     "uuid": "^13.0.0"
   },
