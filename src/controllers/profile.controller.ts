@@ -301,3 +301,50 @@ export const deleteProfile = async (req: Request, res: Response): Promise<void> 
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+// Add this to your backend profile controller
+export const exchangeGoogleCode = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req as AuthRequest).user.userId;
+        const { code } = req.body;
+
+        if (!code) {
+            res.status(400).json({ success: false, message: "Authorization code required" });
+            return;
+        }
+
+        // Exchange code for tokens on the backend (SECURE)
+        const oauth2Client = new google.auth.OAuth2(
+            process.env.GOOGLE_CLIENT_ID,
+            process.env.GOOGLE_CLIENT_SECRET,  // ← This is safe only on backend
+            `${process.env.FRONTEND_URL}/calendar/callback`
+        );
+
+        const { tokens } = await oauth2Client.getToken(code);
+
+        // Save tokens to profile
+        const profile = await Profile.findOneAndUpdate(
+            { userId },
+            {
+                $set: {
+                    "integrations.google": {
+                        accessToken: tokens.access_token,
+                        refreshToken: tokens.refresh_token,
+                        connected: true,
+                    },
+                },
+            },
+            { new: true }
+        );
+
+        if (!profile) {
+            res.status(404).json({ success: false, message: "Profile not found" });
+            return;
+        }
+
+        res.status(200).json({ success: true, message: "Google Calendar connected" });
+    } catch (error: any) {
+        console.error("Token exchange error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};

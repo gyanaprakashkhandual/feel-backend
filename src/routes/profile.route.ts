@@ -15,6 +15,7 @@ import {
     disconnectSpotify,
     getIntegrationStatus,
     deleteProfile,
+    exchangeGoogleCode,
 } from "../controllers/profile.controller";
 import {
     requireProfileOwner,
@@ -61,5 +62,8 @@ router.delete("/spotify", authenticate, requireProfileOwner, disconnectSpotify);
 router.post("/google/calendar/connect", authenticate, requireProfileOwner, connectGoogleCalendar);
 router.get("/google/calendar/events", authenticate, requireProfileOwner, getCalendarEvents);
 router.delete("/google/calendar", authenticate, requireProfileOwner, disconnectGoogleCalendar);
+
+// In your routes file
+router.post("/profile/google/calendar/exchange", authenticate, exchangeGoogleCode);
 
 export default router;
