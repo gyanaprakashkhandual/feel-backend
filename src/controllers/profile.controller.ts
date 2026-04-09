@@ -15,7 +15,7 @@ const getOAuth2Client = (accessToken: string, refreshToken?: string) => {
 
 export const createProfile = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as AuthRequest).user._id.toString();
+        const userId = (req as AuthRequest).user.userId;
         const { username, fullName, nickName, bio } = req.body;
 
         const existing = await Profile.findOne({ $or: [{ userId }, { username }] });

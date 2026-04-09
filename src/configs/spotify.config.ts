@@ -1,9 +1,11 @@
 import passport from "passport";
 import { Strategy as SpotifyStrategy, Profile as SpotifyProfile } from "passport-spotify";
-import { VerifyCallback } from "passport-oauth2";
+import { IUserDocument } from "../models/user.model";
 import Profile from "../models/profile.model";
 
 const SPOTIFY_CALLBACK_URL = `${process.env.API_BASE_URL}/api/profile/spotify/callback`;
+
+type SpotifyDone = (error: Error | null, user?: Express.User | false) => void;
 
 passport.use(
     new SpotifyStrategy(
@@ -23,15 +25,17 @@ passport.use(
             accessToken: string,
             refreshToken: string,
             _expires_in: number,
-            profile: SpotifyProfile,
-            done: VerifyCallback
+            _profile: SpotifyProfile,
+            done: SpotifyDone
         ) => {
             try {
-                const userId = (req.user as any)?._id?.toString();
+                const user = req.user as IUserDocument | undefined;
 
-                if (!userId) {
+                if (!user || !user._id) {
                     return done(new Error("User not authenticated"));
                 }
+
+                const userId = user._id.toString();
 
                 const updated = await Profile.findOneAndUpdate(
                     { userId },
@@ -51,9 +55,9 @@ passport.use(
                     return done(new Error("Profile not found"));
                 }
 
-                return done(null, req.user as Express.User);
+                return done(null, user);
             } catch (error) {
-                return done(error as Error);
+                return done(error instanceof Error ? error : new Error(String(error)));
             }
         }
     )

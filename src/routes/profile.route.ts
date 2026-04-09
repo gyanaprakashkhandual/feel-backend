@@ -1,5 +1,5 @@
 import { Router } from "express";
-import passport from "../config/spotify.config";
+import passport from "../configs/spotify.config";
 import { authenticate } from "../middlewares/user.middleware";
 import {
     createProfile,

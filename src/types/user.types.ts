@@ -1,3 +1,5 @@
+import { Types } from "mongoose";
+
 export type UserRole = "individual" | "premium" | "therapist" | "hr_admin" | "researcher" | "super_admin";
 
 export type OAuthProvider = "google" | "github";
@@ -16,7 +18,7 @@ export interface IPrivacySettings {
 }
 
 export interface IUser {
-    _id: string;
+    _id: Types.ObjectId;
     name: string;
     email: string;
     avatar?: string;

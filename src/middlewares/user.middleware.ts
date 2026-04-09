@@ -4,11 +4,7 @@ import User from "../models/user.model";
 import { IAuthTokenPayload, UserRole } from "../types/user.types";
 
 export interface AuthRequest extends Request {
-    user?: {
-        userId: string;
-        email: string;
-        role: UserRole;
-    };
+    user: IAuthTokenPayload;
 }
 
 export const authenticate = async (
@@ -35,7 +31,12 @@ export const authenticate = async (
             return;
         }
 
-        (req as AuthRequest).user = { userId: decoded.userId, email: decoded.email, role: decoded.role };
+        (req as AuthRequest).user = {
+            userId: user._id.toString(),
+            email: user.email,
+            role: user.role,
+        };
+
         next();
     } catch {
         res.status(401).json({ success: false, message: "Invalid or expired token" });
