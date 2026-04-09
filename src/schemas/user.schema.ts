@@ -1,5 +1,5 @@
 import { Schema } from "mongoose";
-import { IUser } from "../types/user.types";
+import { IUserDocument } from "../models/user.model";
 
 const oauthProfileSchema = new Schema(
     {
@@ -20,7 +20,7 @@ const privacySettingsSchema = new Schema(
     { _id: false }
 );
 
-export const userSchema = new Schema<IUser>(
+export const userSchema = new Schema<IUserDocument>(
     {
         name: { type: String, required: true, trim: true },
         email: { type: String, required: true, unique: true, lowercase: true, trim: true },
@@ -52,7 +52,7 @@ export const userSchema = new Schema<IUser>(
 userSchema.index({ email: 1 });
 userSchema.index({ "oauthProfiles.provider": 1, "oauthProfiles.providerId": 1 });
 
-(userSchema.statics as any).findByOAuth = function (provider: string, providerId: string) {
+userSchema.statics.findByOAuth = function (provider: string, providerId: string) {
     return this.findOne({
         oauthProfiles: {
             $elemMatch: { provider, providerId },

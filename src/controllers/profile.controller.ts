@@ -35,7 +35,7 @@ export const createProfile = async (req: Request, res: Response): Promise<void> 
 
 export const getMyProfile = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as AuthRequest).user._id.toString();
+        const userId = (req as AuthRequest).user.userId;
         const profile = await Profile.findOne({ userId });
 
         if (!profile) {
@@ -52,9 +52,7 @@ export const getMyProfile = async (req: Request, res: Response): Promise<void> =
 export const getProfileByUsername = async (req: Request, res: Response): Promise<void> => {
     try {
         const { username } = req.params;
-        const profile = await Profile.findOne({ username: username.toLowerCase() }).select(
-            "-integrations"
-        );
+        const profile = await Profile.findOne({ username: (req.params.username as string).toLowerCase() }).select("-integrations");
 
         if (!profile) {
             res.status(404).json({ success: false, message: "Profile not found" });
@@ -69,7 +67,7 @@ export const getProfileByUsername = async (req: Request, res: Response): Promise
 
 export const updateProfile = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as AuthRequest).user._id.toString();
+        const userId = (req as AuthRequest).user.userId;
         const { fullName, nickName, bio, profilePicture } = req.body;
 
         const profile = await Profile.findOneAndUpdate(
@@ -91,7 +89,7 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
 
 export const updateUsername = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as AuthRequest).user._id.toString();
+        const userId = (req as AuthRequest).user.userId;
         const { username } = req.body;
 
         const taken = await Profile.findOne({ username: username.toLowerCase(), userId: { $ne: userId } });
@@ -120,7 +118,7 @@ export const updateUsername = async (req: Request, res: Response): Promise<void>
 
 export const saveLocation = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as AuthRequest).user._id.toString();
+        const userId = (req as AuthRequest).user.userId;
         const { lat, lng } = req.body;
 
         if (typeof lat !== "number" || typeof lng !== "number") {
@@ -147,7 +145,7 @@ export const saveLocation = async (req: Request, res: Response): Promise<void> =
 
 export const getCalendarEvents = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as AuthRequest).user._id.toString();
+        const userId = (req as AuthRequest).user.userId;
         const profile = await Profile.findOne({ userId });
 
         if (!profile?.integrations?.google?.connected) {
@@ -185,7 +183,7 @@ export const getCalendarEvents = async (req: Request, res: Response): Promise<vo
 
 export const connectGoogleCalendar = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as AuthRequest).user._id.toString();
+        const userId = (req as AuthRequest).user.userId;
         const { accessToken, refreshToken } = req.body;
 
         const profile = await Profile.findOneAndUpdate(
@@ -215,7 +213,7 @@ export const connectGoogleCalendar = async (req: Request, res: Response): Promis
 
 export const disconnectGoogleCalendar = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as AuthRequest).user._id.toString();
+        const userId = (req as AuthRequest).user.userId;
 
         await Profile.findOneAndUpdate(
             { userId },
@@ -230,7 +228,7 @@ export const disconnectGoogleCalendar = async (req: Request, res: Response): Pro
 
 export const getSpotifyData = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as AuthRequest).user._id.toString();
+        const userId = (req as AuthRequest).user.userId;
         const profile = await Profile.findOne({ userId });
 
         if (!profile?.integrations?.spotify?.connected) {
@@ -259,7 +257,7 @@ export const getSpotifyData = async (req: Request, res: Response): Promise<void>
 
 export const disconnectSpotify = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as AuthRequest).user._id.toString();
+        const userId = (req as AuthRequest).user.userId;
 
         await Profile.findOneAndUpdate(
             { userId },
@@ -274,7 +272,7 @@ export const disconnectSpotify = async (req: Request, res: Response): Promise<vo
 
 export const getIntegrationStatus = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as AuthRequest).user._id.toString();
+        const userId = (req as AuthRequest).user.userId;
         const profile = await Profile.findOne({ userId }).select("integrations");
 
         if (!profile) {
@@ -296,7 +294,7 @@ export const getIntegrationStatus = async (req: Request, res: Response): Promise
 
 export const deleteProfile = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = (req as AuthRequest).user._id.toString();
+        const userId = (req as AuthRequest).user.userId;
         await Profile.findOneAndDelete({ userId });
         res.status(200).json({ success: true, message: "Profile deleted" });
     } catch (error: any) {
