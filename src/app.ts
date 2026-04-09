@@ -47,7 +47,7 @@ app.get("/health", (_req: Request, res: Response) => {
     res.status(200).json({ success: true, message: "Server is healthy" });
 });
 
-app.use("/api/auth", authLimiter, authRouter);
+app.use("/api/auth",  authRouter);
 app.use("/api/profile", profileRouter);
 
 app.use((_req: Request, res: Response) => {
