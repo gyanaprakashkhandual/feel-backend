@@ -6,6 +6,7 @@ import rateLimit from "express-rate-limit";
 import "./configs/passport.config";
 
 import authRouter from "./routes/user.route";
+import profileRouter from './routes/profile.route';
 
 const app: Application = express();
 
@@ -47,6 +48,7 @@ app.get("/health", (_req: Request, res: Response) => {
 });
 
 app.use("/api/auth", authLimiter, authRouter);
+app.use("/api/profile", profileRouter);
 
 app.use((_req: Request, res: Response) => {
     res.status(404).json({ success: false, message: "Route not found" });

@@ -9,7 +9,7 @@ export const requireProfileOwner = async (
     next: NextFunction
 ): Promise<void> => {
     try {
-        const userId = (req as AuthRequest).user._id.toString();
+        const userId = (req as AuthRequest).user.userId;
         const profile = await Profile.findOne({ userId });
 
         if (!profile) {
@@ -29,7 +29,7 @@ export const requireNoProfile = async (
     next: NextFunction
 ): Promise<void> => {
     try {
-        const userId = (req as AuthRequest).user._id.toString();
+        const userId = (req as AuthRequest).user.userId;
         const profile = await Profile.findOne({ userId });
 
         if (profile) {
@@ -49,7 +49,7 @@ export const requireSpotifyConnected = async (
     next: NextFunction
 ): Promise<void> => {
     try {
-        const userId = (req as AuthRequest).user._id.toString();
+        const userId = (req as AuthRequest).user.userId;
         const profile = await Profile.findOne({ userId }).select("integrations");
 
         if (!profile?.integrations?.spotify?.connected) {
@@ -69,7 +69,7 @@ export const requireGoogleConnected = async (
     next: NextFunction
 ): Promise<void> => {
     try {
-        const userId = (req as AuthRequest).user._id.toString();
+        const userId = (req as AuthRequest).user.userId;
         const profile = await Profile.findOne({ userId }).select("integrations");
 
         if (!profile?.integrations?.google?.connected) {
