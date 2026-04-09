@@ -302,7 +302,7 @@ export const deleteProfile = async (req: Request, res: Response): Promise<void> 
     }
 };
 
-// Add this to your backend profile controller
+
 export const exchangeGoogleCode = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = (req as AuthRequest).user.userId;
@@ -313,16 +313,22 @@ export const exchangeGoogleCode = async (req: Request, res: Response): Promise<v
             return;
         }
 
-        // Exchange code for tokens on the backend (SECURE)
         const oauth2Client = new google.auth.OAuth2(
             process.env.GOOGLE_CLIENT_ID,
-            process.env.GOOGLE_CLIENT_SECRET,  // ← This is safe only on backend
-            `${process.env.FRONTEND_URL}/calendar/callback`
+            process.env.GOOGLE_CLIENT_SECRET,
+            `${process.env.CLIENT_URL}/calendar/callback`
         );
 
         const { tokens } = await oauth2Client.getToken(code);
 
-        // Save tokens to profile
+        // First, ensure integrations exists
+        await Profile.updateOne(
+            { userId },
+            { $set: { integrations: {} } },
+            { upsert: false }
+        );
+
+        // Then set the google integration
         const profile = await Profile.findOneAndUpdate(
             { userId },
             {
@@ -331,8 +337,8 @@ export const exchangeGoogleCode = async (req: Request, res: Response): Promise<v
                         accessToken: tokens.access_token,
                         refreshToken: tokens.refresh_token,
                         connected: true,
-                    },
-                },
+                    }
+                }
             },
             { new: true }
         );

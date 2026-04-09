@@ -64,6 +64,6 @@ router.get("/google/calendar/events", authenticate, requireProfileOwner, getCale
 router.delete("/google/calendar", authenticate, requireProfileOwner, disconnectGoogleCalendar);
 
 // In your routes file
-router.post("/profile/google/calendar/exchange", authenticate, exchangeGoogleCode);
+router.post("/google/calendar/exchange", authenticate, exchangeGoogleCode);
 
 export default router;
