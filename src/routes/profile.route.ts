@@ -38,10 +38,10 @@ router.delete("/me", authenticate, requireProfileOwner, deleteProfile);
 router.get("/u/:username", validateUsernameParam, getProfileByUsername);
 router.post("/me/location", authenticate, requireProfileOwner, validateLocation, saveLocation);
 
-router.get("/integrations/status", authenticate, requireProfileOwner, getIntegrationStatus);
+router.get("/integrations/status", authenticate, getIntegrationStatus);
 
-router.get("/spotify/data", authenticate, requireProfileOwner, getSpotifyData);
-router.delete("/spotify", authenticate, requireProfileOwner, disconnectSpotify);
+router.get("/spotify/data", authenticate, getSpotifyData);
+router.delete("/spotify", authenticate, disconnectSpotify);
 
 // ── Spotify OAuth callback (no auth — Spotify redirects here directly) ──
 router.get("/spotify/callback", async (req, res) => {
@@ -57,6 +57,8 @@ router.get("/spotify/callback", async (req, res) => {
         }
 
         const userId = state as string;
+
+        console.log("Spotify callback - looking for profile with userId:", userId);
 
         const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
             method: "POST",
@@ -82,7 +84,7 @@ router.get("/spotify/callback", async (req, res) => {
         const Profile = (await import("../models/profile.model")).default;
 
         const profile = await Profile.findOneAndUpdate(
-            { userId },
+            { userId: userId },
             {
                 $set: {
                     "integrations.spotify": {
@@ -107,11 +109,11 @@ router.get("/spotify/callback", async (req, res) => {
 });
 
 // ── Spotify exchange (authenticated — fallback if using frontend-side flow) ──
-router.post("/spotify/exchange", authenticate, requireProfileOwner, exchangeSpotifyCode);
+router.post("/spotify/exchange", authenticate, exchangeSpotifyCode);
 
-router.post("/google/calendar/connect", authenticate, requireProfileOwner, connectGoogleCalendar);
-router.get("/google/calendar/events", authenticate, requireProfileOwner, getCalendarEvents);
-router.delete("/google/calendar", authenticate, requireProfileOwner, disconnectGoogleCalendar);
+router.post("/google/calendar/connect", authenticate, connectGoogleCalendar);
+router.get("/google/calendar/events", authenticate, getCalendarEvents);
+router.delete("/google/calendar", authenticate, disconnectGoogleCalendar);
 router.post("/google/calendar/exchange", authenticate, exchangeGoogleCode);
 
 export default router;
