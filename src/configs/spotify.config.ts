@@ -3,7 +3,7 @@ import { Strategy as SpotifyStrategy, Profile as SpotifyProfile, VerifyFunctionW
 import { IUserDocument } from "../models/user.model";
 import Profile from "../models/profile.model";
 
-const SPOTIFY_CALLBACK_URL = `${process.env.API_BASE_URL}/api/profile/spotify/callback`;
+const SPOTIFY_CALLBACK_URL = `${process.env.SPOTIFY_REDIRECT_URI}`;
 
 const spotifyVerify: VerifyFunctionWithRequest = async (
     req,

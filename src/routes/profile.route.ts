@@ -72,7 +72,7 @@ router.get("/spotify", passport.authenticate("spotify"));
 router.get(
     "/spotify/callback",
     passport.authenticate("spotify", { 
-        failureRedirect: `${process.env.CLIENT_URL}/settings?spotify=failed`,
+        failureRedirect: `http://127.0.0.1:3000/settings?error=spotify_failed`,
         session: false 
     }),
     spotifyCallback
