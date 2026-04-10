@@ -116,6 +116,37 @@ export const updateUsername = async (req: Request, res: Response): Promise<void>
     }
 };
 
+
+export const connectSpotify = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req as AuthRequest).user.userId;
+        const { accessToken, refreshToken } = req.body;
+
+        const profile = await Profile.findOneAndUpdate(
+            { userId },
+            {
+                $set: {
+                    "integrations.spotify": {
+                        accessToken,
+                        refreshToken,
+                        connected: true,
+                    },
+                },
+            },
+            { new: true }
+        );
+
+        if (!profile) {
+            res.status(404).json({ success: false, message: "Profile not found" });
+            return;
+        }
+
+        res.status(200).json({ success: true, message: "Spotify connected" });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 export const saveLocation = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = (req as AuthRequest).user.userId;
@@ -142,6 +173,43 @@ export const saveLocation = async (req: Request, res: Response): Promise<void> =
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+
+export const spotifyCallback = async (req: Request, res: Response): Promise<void> => {
+    try {
+        // Passport already saved tokens, just redirect to frontend
+        res.redirect(`${process.env.CLIENT_URL}/settings?spotify=connected`);
+    } catch (error: any) {
+        res.redirect(`${process.env.CLIENT_URL}/settings?spotify=error`);
+    }
+};
+
+// Helper for Spotify token refresh
+const refreshSpotifyToken = async (userId: string, refreshToken: string) => {
+    const response = await fetch("https://accounts.spotify.com/api/token", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: `Basic ${Buffer.from(
+                `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+            ).toString("base64")}`,
+        },
+        body: new URLSearchParams({
+            grant_type: "refresh_token",
+            refresh_token: refreshToken,
+        }),
+    });
+    
+    const data = await response.json();
+    
+    await Profile.findOneAndUpdate(
+        { userId },
+        { $set: { "integrations.spotify.accessToken": data.access_token } }
+    );
+    
+    return data.access_token;
+};
+
 
 export const getCalendarEvents = async (req: Request, res: Response): Promise<void> => {
     try {

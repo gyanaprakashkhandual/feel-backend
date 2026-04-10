@@ -16,6 +16,7 @@ import {
     getIntegrationStatus,
     deleteProfile,
     exchangeGoogleCode,
+    spotifyCallback,
 } from "../controllers/profile.controller";
 import {
     requireProfileOwner,
@@ -65,5 +66,16 @@ router.delete("/google/calendar", authenticate, requireProfileOwner, disconnectG
 
 // In your routes file
 router.post("/google/calendar/exchange", authenticate, exchangeGoogleCode);
+
+// In your routes file:
+router.get("/spotify", passport.authenticate("spotify"));
+router.get(
+    "/spotify/callback",
+    passport.authenticate("spotify", { 
+        failureRedirect: `${process.env.CLIENT_URL}/settings?spotify=failed`,
+        session: false 
+    }),
+    spotifyCallback
+);
 
 export default router;
