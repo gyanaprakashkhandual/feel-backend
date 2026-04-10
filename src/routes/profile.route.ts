@@ -1,5 +1,4 @@
 import { Router } from "express";
-import passport from "../configs/spotify.config";
 import { authenticate } from "../middlewares/user.middleware";
 import {
     createProfile,
@@ -16,7 +15,7 @@ import {
     getIntegrationStatus,
     deleteProfile,
     exchangeGoogleCode,
-    spotifyCallback,
+    exchangeSpotifyCode,
 } from "../controllers/profile.controller";
 import {
     requireProfileOwner,
@@ -37,45 +36,82 @@ router.patch("/me/username", authenticate, requireProfileOwner, validateUpdateUs
 router.delete("/me", authenticate, requireProfileOwner, deleteProfile);
 
 router.get("/u/:username", validateUsernameParam, getProfileByUsername);
-
 router.post("/me/location", authenticate, requireProfileOwner, validateLocation, saveLocation);
 
 router.get("/integrations/status", authenticate, requireProfileOwner, getIntegrationStatus);
 
-router.get(
-    "/spotify",
-    authenticate,
-    passport.authenticate("spotify", { session: false })
-);
-
-router.get(
-    "/spotify/callback",
-    authenticate,
-    passport.authenticate("spotify", { session: false, failureRedirect: `${process.env.CLIENT_URL}/integrations?error=spotify` }),
-    (_req, res) => {
-        res.redirect(`${process.env.CLIENT_URL}/integrations?spotify=connected`);
-    }
-);
-
 router.get("/spotify/data", authenticate, requireProfileOwner, getSpotifyData);
 router.delete("/spotify", authenticate, requireProfileOwner, disconnectSpotify);
+
+// ── Spotify OAuth callback (no auth — Spotify redirects here directly) ──
+router.get("/spotify/callback", async (req, res) => {
+    try {
+        const { code, state, error } = req.query;
+
+        if (error) {
+            return res.redirect(`${process.env.CLIENT_URL}/spotify/callback?error=spotify_denied`);
+        }
+
+        if (!code || !state) {
+            return res.redirect(`${process.env.CLIENT_URL}/spotify/callback?error=missing_params`);
+        }
+
+        const userId = state as string;
+
+        const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                Authorization: `Basic ${Buffer.from(
+                    `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+                ).toString("base64")}`,
+            },
+            body: new URLSearchParams({
+                grant_type: "authorization_code",
+                code: code as string,
+                redirect_uri: process.env.SPOTIFY_REDIRECT_URI!,
+            }),
+        });
+
+        if (!tokenResponse.ok) {
+            return res.redirect(`${process.env.CLIENT_URL}/spotify/callback?error=token_exchange_failed`);
+        }
+
+        const tokens = await tokenResponse.json();
+
+        const Profile = (await import("../models/profile.model")).default;
+
+        const profile = await Profile.findOneAndUpdate(
+            { userId },
+            {
+                $set: {
+                    "integrations.spotify": {
+                        accessToken: tokens.access_token,
+                        refreshToken: tokens.refresh_token,
+                        connected: true,
+                    },
+                },
+            },
+            { new: true }
+        );
+
+        if (!profile) {
+            return res.redirect(`${process.env.CLIENT_URL}/spotify/callback?error=profile_not_found`);
+        }
+
+        return res.redirect(`${process.env.CLIENT_URL}/spotify/callback?success=true`);
+    } catch (err) {
+        console.error("Spotify callback error:", err);
+        return res.redirect(`${process.env.CLIENT_URL}/spotify/callback?error=spotify_failed`);
+    }
+});
+
+// ── Spotify exchange (authenticated — fallback if using frontend-side flow) ──
+router.post("/spotify/exchange", authenticate, requireProfileOwner, exchangeSpotifyCode);
 
 router.post("/google/calendar/connect", authenticate, requireProfileOwner, connectGoogleCalendar);
 router.get("/google/calendar/events", authenticate, requireProfileOwner, getCalendarEvents);
 router.delete("/google/calendar", authenticate, requireProfileOwner, disconnectGoogleCalendar);
-
-// In your routes file
 router.post("/google/calendar/exchange", authenticate, exchangeGoogleCode);
-
-// In your routes file:
-router.get("/spotify", passport.authenticate("spotify"));
-router.get(
-    "/spotify/callback",
-    passport.authenticate("spotify", { 
-        failureRedirect: `http://127.0.0.1:3000/settings?error=spotify_failed`,
-        session: false 
-    }),
-    spotifyCallback
-);
 
 export default router;

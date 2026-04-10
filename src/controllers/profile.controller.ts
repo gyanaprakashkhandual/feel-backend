@@ -422,3 +422,72 @@ export const exchangeGoogleCode = async (req: Request, res: Response): Promise<v
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+export const exchangeSpotifyCode = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req as AuthRequest).user.userId;
+        const { code } = req.body;
+
+        console.log("🔄 Exchanging Spotify code for user:", userId);
+
+        if (!code) {
+            res.status(400).json({ success: false, message: "Authorization code required" });
+            return;
+        }
+
+        // Exchange code with Spotify
+        const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                Authorization: `Basic ${Buffer.from(
+                    `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+                ).toString("base64")}`,
+            },
+            body: new URLSearchParams({
+                grant_type: "authorization_code",
+                code,
+                redirect_uri: process.env.SPOTIFY_CALLBACK_URL!,
+            }),
+        });
+
+        if (!tokenResponse.ok) {
+            const error = await tokenResponse.text();
+            console.error("❌ Spotify token exchange failed:", error);
+            res.status(400).json({ success: false, message: "Failed to exchange code" });
+            return;
+        }
+
+        const tokens = await tokenResponse.json();
+        console.log("✅ Tokens received from Spotify");
+
+        // Save tokens to profile
+        const profile = await Profile.findOneAndUpdate(
+            { userId },
+            {
+                $set: {
+                    "integrations.spotify": {
+                        accessToken: tokens.access_token,
+                        refreshToken: tokens.refresh_token,
+                        connected: true,
+                    },
+                },
+            },
+            { new: true }
+        );
+
+        if (!profile) {
+            res.status(404).json({ success: false, message: "Profile not found" });
+            return;
+        }
+
+        console.log("✅ Spotify tokens saved to profile");
+        res.status(200).json({ 
+            success: true, 
+            message: "Spotify connected successfully" 
+        });
+    } catch (error: any) {
+        console.error("❌ Spotify exchange error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
