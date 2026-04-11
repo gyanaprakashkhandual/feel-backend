@@ -8,6 +8,7 @@ import "./configs/passport.config";
 import authRouter from "./routes/user.route";
 import profileRouter from "./routes/profile.route";
 import todoRouter from "./routes/todo.route";
+import moodRouter from "./routes/mood.route";
 
 const app: Application = express();
 
@@ -66,6 +67,7 @@ app.get("/health", (_req: Request, res: Response) => {
 app.use("/api/auth", authRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/todo", todoRouter);
+app.use("/api/mood", moodRouter);
 
 app.use((_req: Request, res: Response) => {
     res.status(404).json({ success: false, message: "Route not found" });
