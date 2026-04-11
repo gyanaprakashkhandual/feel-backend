@@ -22,10 +22,26 @@ export const createMood = async (req: Request, res: Response): Promise<void> => 
                 : [],
         };
 
+        console.log("1. Payload created:", JSON.stringify(payload, null, 2));
+
         const { context, isContextCaptured, contextCaptureErrors } = await captureContext(
             userId,
             timestamp
         );
+
+        console.log("2. Context captured:", {
+            capturedAt: context.capturedAt,
+            location: context.location,
+            weather: context.weather,
+            calendar: context.calendar,
+            spotify: context.spotify,
+            todos: context.todos,
+            userBio: context.userBio,
+            isContextCaptured,
+            contextCaptureErrors,
+        });
+
+        console.log("3. About to create mood with context:", JSON.stringify(context, null, 2));
 
         const mood = await Mood.create({
             userId,
@@ -39,12 +55,17 @@ export const createMood = async (req: Request, res: Response): Promise<void> => 
             contextCaptureErrors,
         });
 
+        console.log("4. Mood created successfully");
+
         res.status(201).json({
             success: true,
             message: "Mood logged successfully.",
             data: mood.toJSON(),
         });
     } catch (error) {
+        console.error("❌ ERROR in createMood:", error);
+        console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
+        
         res.status(500).json({
             success: false,
             message: "Failed to log mood.",

@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { Types } from "mongoose";
 import User from "../models/user.model";
 import { IAuthTokenPayload, UserRole } from "../types/user.types";
 
 export interface AuthRequest extends Request {
-    user: IAuthTokenPayload;
+    user: IAuthTokenPayload & { _id: Types.ObjectId };
 }
 
 export const authenticate = async (
@@ -32,9 +33,10 @@ export const authenticate = async (
         }
 
         (req as AuthRequest).user = {
-            userId: user._id.toString(),
+            userId: decoded.userId,
             email: user.email,
             role: user.role,
+            _id: user._id,  // ✅ Add this
         };
 
         next();

@@ -81,11 +81,14 @@ export const captureContext = async (
     const todos =
         todoResult.status === "fulfilled" ? todoResult.value : (errors.push("todos"), null);
 
-    console.log("Location:", location);
-    console.log("Weather:", weather);
-    console.log("Calendar:", calendar);
-    console.log("Spotify:", spotify);
-    console.log("Todos:", todos);
+    console.log("=== CONTEXT CAPTURE DEBUG ===");
+    console.log("Location:", JSON.stringify(location, null, 2));
+    console.log("Weather:", JSON.stringify(weather, null, 2));
+    console.log("Calendar:", JSON.stringify(calendar, null, 2));
+    console.log("Spotify:", JSON.stringify(spotify, null, 2));
+    console.log("Todos:", JSON.stringify(todos, null, 2));
+    console.log("ProfileData:", JSON.stringify(profileData, null, 2));
+    console.log("============================");
 
     const context: IMoodContext = {
         capturedAt: timestamp,

@@ -13,6 +13,20 @@ export interface IProfileContextData {
 }
 
 export const getProfileContextData = async (userId: Types.ObjectId): Promise<IProfileContextData> => {
+    if (!userId) {
+        console.error("❌ userId is undefined in getProfileContextData");
+        return {
+            bio: null,
+            location: null,
+            googleAccessToken: null,
+            googleRefreshToken: null,
+            spotifyAccessToken: null,
+            spotifyRefreshToken: null,
+            isGoogleConnected: false,
+            isSpotifyConnected: false,
+        };
+    }
+
     const profile = await Profile.findOne({ userId: userId.toString() })
         .select("bio location integrations")
         .lean();
