@@ -9,7 +9,7 @@ const DEFAULT_LIMIT = 20;
 
 export const createMood = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = req.user._id as Types.ObjectId;
+        const userId = req.user!._id as Types.ObjectId;
         const timestamp = new Date();
 
         const payload: ICreateMoodPayload = {
@@ -55,7 +55,7 @@ export const createMood = async (req: Request, res: Response): Promise<void> => 
 
 export const getMoods = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = req.user._id as Types.ObjectId;
+        const userId = req.user!._id as Types.ObjectId;
 
         const page = Number(req.query.page ?? DEFAULT_PAGE);
         const limit = Number(req.query.limit ?? DEFAULT_LIMIT);
@@ -120,7 +120,7 @@ export const getMoods = async (req: Request, res: Response): Promise<void> => {
 
 export const getMoodById = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = req.user._id as Types.ObjectId;
+        const userId = req.user!._id as Types.ObjectId;
         const { id } = req.params;
 
         const mood = await Mood.findOne({ _id: id, userId }).lean();
@@ -142,7 +142,7 @@ export const getMoodById = async (req: Request, res: Response): Promise<void> =>
 
 export const updateMood = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = req.user._id as Types.ObjectId;
+        const userId = req.user!._id as Types.ObjectId;
         const { id } = req.params;
 
         const allowedUpdates: Partial<ICreateMoodPayload> = {};
@@ -181,7 +181,7 @@ export const updateMood = async (req: Request, res: Response): Promise<void> => 
 
 export const deleteMood = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = req.user._id as Types.ObjectId;
+        const userId = req.user!._id as Types.ObjectId;
         const { id } = req.params;
 
         const mood = await Mood.findOneAndDelete({ _id: id, userId });
@@ -203,7 +203,7 @@ export const deleteMood = async (req: Request, res: Response): Promise<void> => 
 
 export const getMoodStats = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = req.user._id as Types.ObjectId;
+        const userId = req.user!._id as Types.ObjectId;
 
         const dateFilter: Record<string, any> = {};
         if (req.query.startDate || req.query.endDate) {
@@ -281,7 +281,7 @@ export const getMoodStats = async (req: Request, res: Response): Promise<void> =
 
 export const getMoodContext = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = req.user._id as Types.ObjectId;
+        const userId = req.user!._id as Types.ObjectId;
         const { id } = req.params;
 
         const mood = await Mood.findOne({ _id: id, userId })
@@ -305,7 +305,7 @@ export const getMoodContext = async (req: Request, res: Response): Promise<void>
 
 export const retryMoodContext = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = req.user._id as Types.ObjectId;
+        const userId = req.user!._id as Types.ObjectId;
         const { id } = req.params;
 
         const existing = await Mood.findOne({ _id: id, userId });
