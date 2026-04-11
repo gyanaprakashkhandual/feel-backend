@@ -1,4 +1,6 @@
 import { Types } from "mongoose";
+import { Request, Response } from "express";
+import { Mood } from "../../models/mood.model";
 import { IMoodContext } from "../../types/mood.types";
 import { resolveLocation } from "./location.service";
 import { getWeatherByCoords } from "./weather.service";
@@ -79,6 +81,12 @@ export const captureContext = async (
     const todos =
         todoResult.status === "fulfilled" ? todoResult.value : (errors.push("todos"), null);
 
+    console.log("Location:", location);
+    console.log("Weather:", weather);
+    console.log("Calendar:", calendar);
+    console.log("Spotify:", spotify);
+    console.log("Todos:", todos);
+
     const context: IMoodContext = {
         capturedAt: timestamp,
         location,
@@ -92,4 +100,52 @@ export const captureContext = async (
     const isContextCaptured = errors.length === 0;
 
     return { context, isContextCaptured, contextCaptureErrors: errors };
+};
+
+export const retryMoodContext = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req.user as { _id: Types.ObjectId })._id;
+        const { id } = req.params;
+
+        const existing = await Mood.findOne({ _id: id, userId });
+
+        if (!existing) {
+            res.status(404).json({ success: false, message: "Mood not found." });
+            return;
+        }
+
+        if (existing.isContextCaptured) {
+            res.status(400).json({
+                success: false,
+                message: "Context already fully captured for this mood.",
+            });
+            return;
+        }
+
+        // ✅ Safe timestamp handling
+        const captureTimestamp = existing.context?.capturedAt || new Date();
+
+        const { context, isContextCaptured, contextCaptureErrors } = await captureContext(
+            userId,
+            captureTimestamp
+        );
+
+        const updated = await Mood.findByIdAndUpdate(
+            id,
+            { $set: { context, isContextCaptured, contextCaptureErrors } },
+            { new: true }
+        ).lean();
+
+        res.status(200).json({
+            success: true,
+            message: "Context retry completed.",
+            data: updated,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Failed to retry context capture.",
+            error: error instanceof Error ? error.message : "Unknown error",
+        });
+    }
 };

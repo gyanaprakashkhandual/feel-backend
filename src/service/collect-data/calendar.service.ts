@@ -40,9 +40,16 @@ const refreshGoogleAccessToken = async (refreshToken: string): Promise<string> =
 };
 
 const mapGoogleEventToCalendarEvent = (item: IGoogleCalendarEventItem): ICalendarEvent => {
+    const dateStr = item.start.dateTime ?? item.start.date;
+    const endDateStr = item.end.dateTime ?? item.end.date;
+
+    if (!dateStr || !endDateStr) {
+        throw new Error(`Invalid calendar event: missing start or end date for event ${item.id}`);
+    }
+
     const isAllDay = Boolean(item.start.date && !item.start.dateTime);
-    const startTime = new Date(item.start.dateTime ?? item.start.date ?? "");
-    const endTime = new Date(item.end.dateTime ?? item.end.date ?? "");
+    const startTime = new Date(dateStr);
+    const endTime = new Date(endDateStr);
 
     return {
         id: item.id,
