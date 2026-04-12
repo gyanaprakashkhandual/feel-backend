@@ -5,7 +5,7 @@ import { IAuthTokenPayload, IAuthResponse } from "../types/user.types";
 import { AuthRequest } from "../middlewares/user.middleware";
 
 const generateAccessToken = (payload: IAuthTokenPayload): string => {
-    return jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: "15m" });
+    return jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: "1d" });
 };
 
 const generateRefreshToken = (payload: IAuthTokenPayload): string => {

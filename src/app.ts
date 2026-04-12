@@ -57,7 +57,7 @@ const authLimiter = rateLimit({
     message: { success: false, message: "Too many auth attempts, please try again later" },
 });
 
-app.use(globalLimiter);
+// app.use(globalLimiter);
 // app.use("/api/auth", authLimiter);
 
 app.get("/health", (_req: Request, res: Response) => {
